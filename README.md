@@ -1,64 +1,66 @@
-# risk-oracle
+## Foundry
 
-An onchain AI-powered risk oracle that detects and prevents rug pulls before they happen.
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-## RiskRegistry contract
+Foundry consists of:
 
-`RiskRegistry` is a Solidity contract that stores AI-generated rug-pull risk assessments for target contracts.
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-### Features
-- Uses OpenZeppelin `AccessControl`, `Ownable`, and `Pausable`
-- Defines `SCANNER_ROLE` for approved risk scanners
-- Stores risk results in `mapping(address => RiskData) public risks`
-- Restricts `submitRisk` to scanners and only while unpaused
-- Restricts `pause` / `unpause` to owner
+## Documentation
 
-### Contract source
-- `src/RiskRegistry.sol`
+https://book.getfoundry.sh/
 
-## Deploy with Foundry
+## Usage
 
-> Assumes you have Foundry installed (`foundryup`).
+### Build
 
-1. Initialize Foundry in this repo (skip if already initialized):
-
-```bash
-forge init --no-commit .
+```shell
+$ forge build
 ```
 
-2. Install OpenZeppelin Contracts:
+### Test
 
-```bash
-forge install OpenZeppelin/openzeppelin-contracts
+```shell
+$ forge test
 ```
 
-3. Build the contracts:
+### Format
 
-```bash
-forge build
+```shell
+$ forge fmt
 ```
 
-4. Set environment variables:
+### Gas Snapshots
 
-```bash
-export PRIVATE_KEY=<your_private_key>
-export RPC_URL=<your_rpc_url>
+```shell
+$ forge snapshot
 ```
 
-5. Deploy `RiskRegistry`:
+### Anvil
 
-```bash
-forge create src/RiskRegistry.sol:RiskRegistry \
-  --rpc-url $RPC_URL \
-  --private-key $PRIVATE_KEY
+```shell
+$ anvil
 ```
 
-6. (Optional) Verify contract after deploy (example for Etherscan-compatible explorers):
+### Deploy
 
-```bash
-forge verify-contract \
-  <DEPLOYED_ADDRESS> \
-  src/RiskRegistry.sol:RiskRegistry \
-  --chain-id <CHAIN_ID> \
-  --etherscan-api-key <ETHERSCAN_API_KEY>
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
 ```
