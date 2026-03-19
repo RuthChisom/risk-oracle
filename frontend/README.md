@@ -35,6 +35,19 @@ It expects data in this shape:
 - Y-axis: risk score (`0-100`)
 - Tooltip: `Score + Date`
 
+
+## Auto-Block Mode
+
+The scanner page includes an **Auto-Block ON/OFF** toggle.
+
+Transaction interception logic:
+- Before transaction actions (`submitRisk` and simulated transaction), the app checks current risk score.
+- If `score > 70` and Auto-Block is ON, transaction is blocked and a warning modal appears:
+  - `⚠️ This contract is high risk. Transaction blocked.`
+- If Auto-Block is OFF, the same transaction is allowed (override).
+
+Modal UI component: `components/WarningModal.js`.
+
 ## Contract integration example (Ethers.js)
 
 ```js

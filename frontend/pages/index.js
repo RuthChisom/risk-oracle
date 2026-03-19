@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import RiskHistoryChart, { RISK_HISTORY_EXAMPLE_DATA } from "../components/RiskHistoryChart";
+import WarningModal from "../components/WarningModal";
 import { getRiskOnchain, submitRiskOnchain } from "../lib/riskRegistry";
 
 const levelColors = {
@@ -10,6 +11,8 @@ const levelColors = {
 };
 
 const RISK_HISTORY_STORAGE_KEY = "rugpull-guard-history";
+const HIGH_RISK_THRESHOLD = 70;
+const BLOCKED_WARNING_TEXT = "⚠️ This contract is high risk. Transaction blocked.";
 
 function riskRingStyle(score) {
   const color = score >= 70 ? levelColors.HIGH : score >= 35 ? levelColors.MEDIUM : levelColors.LOW;
@@ -43,6 +46,22 @@ function getHistoryByContract(contractAddress) {
   return all[contractAddress.toLowerCase()] || [];
 }
 
+function createSimulatedTxResult() {
+  const txPayload = {
+    to: ethers.ZeroAddress,
+    value: 0,
+    data: "0x",
+    nonce: Math.floor(Date.now() / 1000),
+  };
+
+  const digest = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify(txPayload)));
+  return {
+    hash: digest,
+    payload: txPayload,
+    simulated: true,
+  };
+}
+
 export default function Home() {
   const [contractAddress, setContractAddress] = useState("");
   const [analysis, setAnalysis] = useState(null);
@@ -50,6 +69,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [onchainRisk, setOnchainRisk] = useState(null);
   const [riskHistory, setRiskHistory] = useState([]);
+  const [autoBlockEnabled, setAutoBlockEnabled] = useState(true);
+  const [isWarningOpen, setIsWarningOpen] = useState(false);
 
   useEffect(() => {
     if (ethers.isAddress(contractAddress)) {
@@ -63,6 +84,28 @@ export default function Home() {
     if (!analysis?.level) return "#6c757d";
     return levelColors[analysis.level] || "#6c757d";
   }, [analysis]);
+
+  const currentRiskScore = useMemo(() => {
+    if (typeof analysis?.score === "number") return analysis.score;
+    if (typeof onchainRisk?.score === "number") return onchainRisk.score;
+    return null;
+  }, [analysis, onchainRisk]);
+
+  async function runProtectedTransaction(txName, txAction) {
+    if (!ethers.isAddress(contractAddress)) {
+      setMessage("Please enter a valid contract address.");
+      return;
+    }
+
+    const riskScore = currentRiskScore;
+    if (autoBlockEnabled && typeof riskScore === "number" && riskScore > HIGH_RISK_THRESHOLD) {
+      setIsWarningOpen(true);
+      setMessage(`${txName} blocked by Auto-Block Mode (score ${riskScore}).`);
+      return;
+    }
+
+    await txAction();
+  }
 
   async function scanContract() {
     setMessage("");
@@ -112,24 +155,41 @@ export default function Home() {
     setLoading(true);
     setMessage("");
     try {
-      const result = await submitRiskOnchain({
-        contractAddress,
-        score: analysis.score,
-        level: analysis.level,
-        summary: analysis.summary,
-      });
+      await runProtectedTransaction("submitRisk", async () => {
+        const result = await submitRiskOnchain({
+          contractAddress,
+          score: analysis.score,
+          level: analysis.level,
+          summary: analysis.summary,
+        });
 
-      const historyEntry = {
-        score: analysis.score,
-        level: analysis.level,
-        source: "storeOnchain",
-        timestamp: Math.floor(Date.now() / 1000),
-      };
-      appendHistory(contractAddress, historyEntry);
-      setRiskHistory(getHistoryByContract(contractAddress));
-      setMessage(`Stored onchain. Tx: ${result.txHash}`);
+        const historyEntry = {
+          score: analysis.score,
+          level: analysis.level,
+          source: "storeOnchain",
+          timestamp: Math.floor(Date.now() / 1000),
+        };
+        appendHistory(contractAddress, historyEntry);
+        setRiskHistory(getHistoryByContract(contractAddress));
+        setMessage(`Stored onchain. Tx: ${result.txHash}`);
+      });
     } catch (error) {
       setMessage(error.message || "Onchain store failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function simulateTransaction() {
+    setLoading(true);
+    setMessage("");
+    try {
+      await runProtectedTransaction("Simulated transfer", async () => {
+        const simulatedTx = createSimulatedTxResult();
+        setMessage(`Simulated transaction allowed. Hash: ${simulatedTx.hash}`);
+      });
+    } catch (error) {
+      setMessage(error.message || "Simulation failed.");
     } finally {
       setLoading(false);
     }
@@ -165,6 +225,21 @@ export default function Home() {
         <h1>RugPull Guard</h1>
         <p className="muted">Scan contracts with AI, then persist risk results onchain.</p>
 
+        <div className="autoBlockRow">
+          <span className="autoBlockLabel">Auto-Block Mode</span>
+          <label className="switch" aria-label="Toggle auto block mode">
+            <input
+              type="checkbox"
+              checked={autoBlockEnabled}
+              onChange={(e) => setAutoBlockEnabled(e.target.checked)}
+            />
+            <span className="slider" />
+          </label>
+          <span className={autoBlockEnabled ? "toggleState on" : "toggleState off"}>
+            {autoBlockEnabled ? "ON" : "OFF"}
+          </span>
+        </div>
+
         <div className="formRow">
           <input
             type="text"
@@ -190,6 +265,7 @@ export default function Home() {
               <div className="actions">
                 <button onClick={storeOnchain} disabled={loading}>Store Onchain</button>
                 <button onClick={checkOnchain} disabled={loading} className="secondary">Check Onchain</button>
+                <button onClick={simulateTransaction} disabled={loading} className="secondary">Simulate Tx</button>
               </div>
             </div>
           </div>
@@ -209,6 +285,12 @@ export default function Home() {
 
         {message && <p className="status">{message}</p>}
       </section>
+
+      <WarningModal
+        open={isWarningOpen}
+        message={BLOCKED_WARNING_TEXT}
+        onClose={() => setIsWarningOpen(false)}
+      />
     </main>
   );
 }

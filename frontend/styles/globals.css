@@ -153,3 +153,93 @@ button:disabled {
 .chartBox {
   margin-top: 16px;
 }
+
+.autoBlockRow {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.autoBlockLabel {
+  font-weight: 600;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #adb5bd;
+  transition: 0.2s;
+  border-radius: 999px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 999px;
+}
+
+.switch input:checked + .slider {
+  background-color: #198754;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.toggleState {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.toggleState.on {
+  color: #198754;
+}
+
+.toggleState.off {
+  color: #dc3545;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 13, 18, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modalCard {
+  width: min(440px, 100%);
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  padding: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modalCard h3 {
+  margin-top: 0;
+}
