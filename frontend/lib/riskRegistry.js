@@ -98,3 +98,37 @@ export async function fetchRecentHighRiskFlags({ limit = 10, fromBlock = -200000
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, limit);
 }
+
+
+export async function fetchSafestContracts({ limit = 10, fromBlock = -200000 } = {}) {
+  const registryAddress = getRiskRegistryAddress();
+  if (!registryAddress) {
+    throw new Error("Missing NEXT_PUBLIC_RISK_REGISTRY_ADDRESS");
+  }
+
+  const provider = getReadProvider();
+  const registry = new ethers.Contract(registryAddress, RISK_REGISTRY_ABI, provider);
+
+  const latestBlock = await provider.getBlockNumber();
+  const startBlock = fromBlock < 0 ? Math.max(0, latestBlock + fromBlock) : fromBlock;
+
+  const events = await registry.queryFilter(registry.filters.RiskSubmitted(), startBlock, latestBlock);
+  const uniqueAddresses = [...new Set(events.map((event) => event.args.contractAddr.toLowerCase()))];
+
+  const risks = await Promise.all(
+    uniqueAddresses.map(async (addr) => {
+      const risk = await registry.getRisk(addr);
+      return {
+        contractAddr: addr,
+        score: Number(risk.score),
+        level: risk.level,
+      };
+    })
+  );
+
+  return risks
+    .filter((item) => item.score < 30)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map((item, index) => ({ ...item, rank: index + 1 }));
+}

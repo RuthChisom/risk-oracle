@@ -3,6 +3,8 @@ import { ethers } from "ethers";
 import RiskHistoryChart, { RISK_HISTORY_EXAMPLE_DATA } from "../components/RiskHistoryChart";
 import WarningModal from "../components/WarningModal";
 import RecentFlags from "../components/RecentFlags";
+import SafeLeaderboard from "../components/SafeLeaderboard";
+import AppLogo from "../components/AppLogo";
 import { getRiskOnchain, submitRiskOnchain } from "../lib/riskRegistry";
 
 const levelColors = {
@@ -223,8 +225,14 @@ export default function Home() {
   return (
     <main className="container">
       <section className="card">
-        <h1>RugPull Guard</h1>
-        <p className="muted">Scan contracts with AI, then persist risk results onchain.</p>
+        <div className="brandHeader">
+          <AppLogo variant="icon" />
+          <div>
+            <h1>RugPull Guard</h1>
+            <p className="muted">Scan contracts with AI, then persist risk results onchain.</p>
+          </div>
+        </div>
+        <AppLogo variant="full" />
 
         <div className="autoBlockRow">
           <span className="autoBlockLabel">Auto-Block Mode</span>
@@ -285,6 +293,8 @@ export default function Home() {
         <RiskHistoryChart history={riskHistory.length ? riskHistory : RISK_HISTORY_EXAMPLE_DATA} />
 
         <RecentFlags />
+
+        <SafeLeaderboard />
 
         {message && <p className="status">{message}</p>}
       </section>

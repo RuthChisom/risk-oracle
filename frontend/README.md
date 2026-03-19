@@ -102,6 +102,28 @@ const highRisk = events
 console.log(highRisk);
 ```
 
+
+## Safest Contracts Leaderboard
+
+`SafeLeaderboard` component fetches stored risks and displays top 10 safest contracts.
+
+Rules:
+- includes only LOW-risk contracts (`score < 30`)
+- sorts by score ascending (lowest first)
+- renders leaderboard rows: rank, address, score
+
+
+## Branding asset split from one source file
+
+The UI now uses `components/AppLogo.js` to split one combined branding image into:
+- full logo (`AppLogo variant="full"`)
+- icon logo (`AppLogo variant="icon"`)
+
+Place your provided combined image at:
+- `public/branding/riskoracle-combined.png`
+
+The split is handled with CSS background cropping (`.logoFull` and `.logoIcon`) so you don't need separate files.
+
 ## Notes
 - `submitRisk` will revert unless your connected wallet has `SCANNER_ROLE` in `RiskRegistry`.
 - Analyzer API endpoint is `POST /api/analyze`.

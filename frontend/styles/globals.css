@@ -261,3 +261,66 @@ button:disabled {
   margin: 6px 0;
   word-break: break-all;
 }
+
+.leaderboardList {
+  margin-top: 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.leaderboardHeader,
+.leaderboardRow {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.leaderboardHeader {
+  background: #f1f3f5;
+  font-weight: 700;
+}
+
+.leaderboardRow {
+  border-top: 1px solid #eceff2;
+}
+
+.leaderboardRow span:nth-child(2) {
+  word-break: break-all;
+}
+
+.brandHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoSprite {
+  background-image: url('/branding/riskoracle-combined.png');
+  background-repeat: no-repeat;
+  background-size: 1366px 1024px;
+}
+
+.logoFull {
+  width: min(100%, 700px);
+  aspect-ratio: 900 / 260;
+  background-position: -120px -140px;
+  background-size: 1366px 1024px;
+  margin: 10px 0 6px;
+}
+
+.logoIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-position: -175px -640px;
+  background-size: 1366px 1024px;
+}
+
+@media (max-width: 768px) {
+  .logoFull {
+    width: 100%;
+    aspect-ratio: 16 / 6;
+  }
+}
