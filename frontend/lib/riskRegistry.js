@@ -65,7 +65,7 @@ export async function getRiskOnchain(contractAddress) {
   };
 }
 
-export async function fetchRecentHighRiskFlags({ limit = 10, fromBlock = -200000 } = {}) {
+export async function fetchRecentHighRiskFlags({ limit = 10, fromBlock = -10000 } = {}) {
   const registryAddress = getRiskRegistryAddress();
   if (!registryAddress) {
     throw new Error("Missing NEXT_PUBLIC_RISK_REGISTRY_ADDRESS");
@@ -100,7 +100,7 @@ export async function fetchRecentHighRiskFlags({ limit = 10, fromBlock = -200000
 }
 
 
-export async function fetchSafestContracts({ limit = 10, fromBlock = -200000 } = {}) {
+export async function fetchSafestContracts({ limit = 10, fromBlock = -10000 } = {}) {
   const registryAddress = getRiskRegistryAddress();
   if (!registryAddress) {
     throw new Error("Missing NEXT_PUBLIC_RISK_REGISTRY_ADDRESS");
