@@ -74,3 +74,6 @@ forge verify-contract \
   --etherscan-api-key <ETHERSCAN_API_KEY>
 ```
 ### Deployed to 0x81AeC0B87CAa631365B0AC0B628A84afdf6f1Fe9 on Polkadot
+### SafeContract deployed to: 0x081E632f387c3774c06f8252ff674E5a0C87f215
+### MediumContract deployed to: 0xB2ed1C9712cDCfc4B1Fe40C79F2ff4AB0817e503
+### RiskyContract deployed to: 0xfF964631b4a36d9F3f3021b743Acb33c1f1510Fe
