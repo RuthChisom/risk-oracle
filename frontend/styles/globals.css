@@ -243,3 +243,21 @@ button:disabled {
 .modalCard h3 {
   margin-top: 0;
 }
+
+.flagsList {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.flagCard {
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.flagCard p {
+  margin: 6px 0;
+  word-break: break-all;
+}

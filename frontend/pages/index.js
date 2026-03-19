@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import RiskHistoryChart, { RISK_HISTORY_EXAMPLE_DATA } from "../components/RiskHistoryChart";
 import WarningModal from "../components/WarningModal";
+import RecentFlags from "../components/RecentFlags";
 import { getRiskOnchain, submitRiskOnchain } from "../lib/riskRegistry";
 
 const levelColors = {
@@ -282,6 +283,8 @@ export default function Home() {
         )}
 
         <RiskHistoryChart history={riskHistory.length ? riskHistory : RISK_HISTORY_EXAMPLE_DATA} />
+
+        <RecentFlags />
 
         {message && <p className="status">{message}</p>}
       </section>

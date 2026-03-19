@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
 export const RISK_REGISTRY_ABI = [
+  "event RiskSubmitted(address indexed contractAddr,uint256 score,string level)",
   "function submitRisk(address contractAddr,uint256 score,string level,string summary)",
   "function getRisk(address contractAddr) view returns (tuple(uint256 score,string level,string summary,uint256 timestamp))",
 ];
@@ -17,6 +18,18 @@ export async function getBrowserProvider() {
   const provider = new ethers.BrowserProvider(window.ethereum);
   await provider.send("eth_requestAccounts", []);
   return provider;
+}
+
+function getReadProvider() {
+  if (typeof window !== "undefined" && window.ethereum) {
+    return new ethers.BrowserProvider(window.ethereum);
+  }
+
+  if (process.env.NEXT_PUBLIC_RPC_URL) {
+    return new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
+  }
+
+  throw new Error("Wallet or NEXT_PUBLIC_RPC_URL is required.");
 }
 
 export async function submitRiskOnchain({ contractAddress, score, level, summary }) {
@@ -40,15 +53,7 @@ export async function getRiskOnchain(contractAddress) {
     throw new Error("Missing NEXT_PUBLIC_RISK_REGISTRY_ADDRESS");
   }
 
-  let provider;
-  if (typeof window !== "undefined" && window.ethereum) {
-    provider = new ethers.BrowserProvider(window.ethereum);
-  } else if (process.env.NEXT_PUBLIC_RPC_URL) {
-    provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
-  } else {
-    throw new Error("Wallet or NEXT_PUBLIC_RPC_URL is required.");
-  }
-
+  const provider = getReadProvider();
   const registry = new ethers.Contract(registryAddress, RISK_REGISTRY_ABI, provider);
   const risk = await registry.getRisk(contractAddress);
 
@@ -58,4 +63,38 @@ export async function getRiskOnchain(contractAddress) {
     summary: risk.summary,
     timestamp: Number(risk.timestamp),
   };
+}
+
+export async function fetchRecentHighRiskFlags({ limit = 10, fromBlock = -200000 } = {}) {
+  const registryAddress = getRiskRegistryAddress();
+  if (!registryAddress) {
+    throw new Error("Missing NEXT_PUBLIC_RISK_REGISTRY_ADDRESS");
+  }
+
+  const provider = getReadProvider();
+  const registry = new ethers.Contract(registryAddress, RISK_REGISTRY_ABI, provider);
+
+  const latestBlock = await provider.getBlockNumber();
+  const startBlock = fromBlock < 0 ? Math.max(0, latestBlock + fromBlock) : fromBlock;
+
+  const filter = registry.filters.RiskSubmitted();
+  const events = await registry.queryFilter(filter, startBlock, latestBlock);
+
+  const enriched = await Promise.all(
+    events.map(async (event) => {
+      const block = await provider.getBlock(event.blockNumber);
+      return {
+        contractAddr: event.args.contractAddr,
+        score: Number(event.args.score),
+        level: event.args.level,
+        timestamp: Number(block?.timestamp || 0),
+        blockNumber: event.blockNumber,
+      };
+    })
+  );
+
+  return enriched
+    .filter((item) => item.score > 70)
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, limit);
 }

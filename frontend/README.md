@@ -73,6 +73,35 @@ const risk = await registryRead.getRisk(targetContract);
 console.log(risk.score, risk.level, risk.summary, Number(risk.timestamp));
 ```
 
+
+## Smart contract event query example (RiskSubmitted)
+
+```js
+import { ethers } from "ethers";
+
+const abi = [
+  "event RiskSubmitted(address indexed contractAddr,uint256 score,string level)"
+];
+
+const provider = new ethers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
+const registry = new ethers.Contract(process.env.NEXT_PUBLIC_RISK_REGISTRY_ADDRESS, abi, provider);
+
+const latestBlock = await provider.getBlockNumber();
+const events = await registry.queryFilter(registry.filters.RiskSubmitted(), latestBlock - 200000, latestBlock);
+
+const highRisk = events
+  .map((e) => ({
+    contractAddr: e.args.contractAddr,
+    score: Number(e.args.score),
+    level: e.args.level,
+    blockNumber: e.blockNumber,
+  }))
+  .filter((item) => item.score > 70)
+  .slice(0, 10);
+
+console.log(highRisk);
+```
+
 ## Notes
 - `submitRisk` will revert unless your connected wallet has `SCANNER_ROLE` in `RiskRegistry`.
 - Analyzer API endpoint is `POST /api/analyze`.
